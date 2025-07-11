@@ -24,7 +24,7 @@ API_ID = int(os.environ["API_ID"])
 API_HASH = os.environ["API_HASH"]
 
 # Grupo privado para onde as mensagens serão encaminhadas
-GROUP_ID = os.environ.get("GROUP_ID")
+GROUP_ID = -1002769829306
 if not GROUP_ID:
     raise ValueError("❌ Variável GROUP_ID não definida.")
 
