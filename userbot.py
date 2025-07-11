@@ -1,41 +1,31 @@
 import os
-from telethon import TelegramClient, events, errors
+import base64
 import asyncio
-from telethon.tl.functions.channels import JoinChannelRequest
+from telethon import TelegramClient
 
-api_id = int(os.getenv('API_ID'))
-api_hash = os.getenv('API_HASH')
-grupo_privado_id = int(os.getenv('GRUPO_PRIVADO_ID'))
+# Nome da sessão (sem ".session")
+SESSION_NAME = os.environ.get("SESSION_NAME", "userbot")
 
-canais_para_monitorar = ['ofertaskabum', 'peperaiohardware', 'anrutech']
+# Salva o .session se ainda não existir
+if not os.path.exists(f"{SESSION_NAME}.session"):
+    session_b64 = os.environ.get("SESSION_B64")
+    if session_b64:
+        with open(f"{SESSION_NAME}.session", "wb") as f:
+            f.write(base64.b64decode(session_b64))
+    else:
+        raise ValueError("Variável de ambiente SESSION_B64 não está definida.")
 
-client = TelegramClient('userbot_session', api_id, api_hash)
+# Credenciais da API do Telegram
+API_ID = int(os.environ["API_ID"])
+API_HASH = os.environ["API_HASH"]
 
-async def entrar_canais():
-    for canal in canais_para_monitorar:
-        try:
-            await client(JoinChannelRequest(canal))
-            print(f"Entrou no canal @{canal}")
-        except errors.UserAlreadyParticipantError:
-            print(f"Já inscrito no canal @{canal}")
-        except Exception as e:
-            print(f"Erro ao entrar no canal @{canal}: {e}")
-
-@client.on(events.NewMessage(chats=canais_para_monitorar))
-async def monitorar_mensagens(event):
-    print(f"[DEBUG] Mensagem nova no canal @{event.chat.username}: {event.text[:80]}")
-    try:
-        await event.forward_to(grupo_privado_id)
-        print(f"Mensagem encaminhada para o grupo privado (ID: {grupo_privado_id})")
-    except Exception as e:
-        print(f"Erro ao encaminhar mensagem: {e}")
+# Criação do cliente
+client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
 
 async def main():
     await client.start()
-    await entrar_canais()
-    print("Userbot rodando e monitorando canais para DEBUG...")
+    print("✅ Userbot iniciado com sucesso!")
     await client.run_until_disconnected()
 
-if __name__ == '__main__':
-    import asyncio
+if __name__ == "__main__":
     asyncio.run(main())
